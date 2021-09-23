@@ -1,15 +1,21 @@
 package ionic.appflow;
 
-import ionic.appflow.dto.deployments.Build;
-import ionic.appflow.dto.deployments.Deployment;
-import ionic.appflow.dto.shared.Automation;
-import ionic.appflow.dto.shared.Certificate;
-import ionic.appflow.dto.shared.Channel;
-import ionic.appflow.dto.shared.Commit;
-import ionic.appflow.dto.shared.Config;
-import ionic.appflow.dto.shared.Environment;
-import ionic.appflow.dto.shared.Ionic;
-import ionic.appflow.dto.shared.NativeConfig;
+import ionic.appflow.response.shared.App;
+import ionic.appflow.response.shared.Automation;
+import ionic.appflow.response.shared.Build;
+import ionic.appflow.response.shared.BuildType;
+import ionic.appflow.response.shared.Certificate;
+import ionic.appflow.response.shared.Channel;
+import ionic.appflow.response.shared.Commit;
+import ionic.appflow.response.shared.Config;
+import ionic.appflow.response.shared.Deployment;
+import ionic.appflow.response.shared.Environment;
+import ionic.appflow.response.shared.Ionic;
+import ionic.appflow.response.shared.NativeConfig;
+import ionic.appflow.response.shared.Organization;
+import ionic.appflow.response.shared.Snapshot;
+import ionic.appflow.response.shared.Stack;
+import ionic.appflow.response.shared.User;
 import ionic.appflow.util.TableGenerator;
 
 import java.util.ArrayList;
@@ -22,15 +28,189 @@ public class Application {
     public static void main(String[] args) {
         final String token = System.getenv("IONIC_TOKEN");
         final String appId = System.getenv("IONIC_APP_ID");
+        final String org = System.getenv("IONIC_ORG");
         final AppflowClient client = new AppflowClient(token);
+        printOrganization(client, org);
+        printUsers(client, org);
+        printApp(client, appId);
+        printApps(client);
+        printStacks(client, appId);
         printNativeConfigs(client, appId);
         printSigningCertificates(client, appId);
         printEnvironments(client, appId);
         printAutomations(client, appId);
+        printAutomation(client, appId);
         printChannels(client, appId);
+        printChannel(client, appId);
         printCommits(client, appId);
         printBuilds(client, appId);
+        printBuild(client, appId);
         printDeployments(client, appId);
+        printDeployment(client, appId);
+    }
+
+    private static void printUsers(AppflowClient client, String org) {
+        final Organization organization = client.getOrganization(org);
+        final List<User> users = client.getUsers(organization.getId());
+
+        TableGenerator table = new TableGenerator(
+            "ID",
+            "Name",
+            "Username",
+            "Email",
+            "Role"
+        ).withUnicode(true);
+
+        for (User user : users) {
+            table.addRow(
+                String.valueOf(user.getId()),
+                user.getName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole()
+            );
+        }
+
+        System.out.println("\n\nUsers");
+        table.print();
+    }
+
+    private static void printOrganization(AppflowClient client, String slug) {
+        Organization organization = client.getOrganization(slug);
+        TableGenerator table = new TableGenerator(
+            "Name",
+            "Slug",
+            "Members",
+            "Plan",
+            "Description"
+        ).withUnicode(true);
+        table.addRow(
+            organization.getName(),
+            organization.getSlug(),
+            String.valueOf(organization.getMemberTotal()),
+            organization.getPlan(),
+            organization.getDescription()
+        );
+        System.out.println("\n\nOrganization");
+        table.print();
+    }
+
+    private static void printApp(final AppflowClient client, final String appId) {
+        App app = client.getApp(appId);
+        TableGenerator table = new TableGenerator(
+            "ID",
+            "Name",
+            "Slug",
+            "Web Preview",
+            "Last Activity"
+        ).withUnicode(true);
+        table.addRow(
+            app.getId(),
+            app.getName(),
+            app.getSlug(),
+            String.valueOf(app.isWebPreview()),
+            app.getLastActivity()
+        );
+        System.out.println("\n\nApp");
+        table.print();
+    }
+
+    private static void printApps(AppflowClient client) {
+        final List<App> apps = client.getApps();
+        TableGenerator table = new TableGenerator(
+            "ID",
+            "Name",
+            "Slug",
+            "Web Preview",
+            "Last Activity"
+        ).withUnicode(true);
+        for (App app : apps) {
+            table.addRow(
+                app.getId(),
+                app.getName(),
+                app.getSlug(),
+                String.valueOf(app.isWebPreview()),
+                app.getLastActivity()
+            );
+        }
+        System.out.println("\n\nApps");
+        table.print();
+    }
+
+    private static void printStacks(AppflowClient client, String appId) {
+        final List<Stack> stacks = client.getStacks();
+        TableGenerator table = new TableGenerator(
+            "Platform",
+            "Name",
+            "Friendly Name",
+            "Latest",
+            "Build Types"
+        ).withUnicode(true);
+        for (Stack stack : stacks) {
+            table.addRow(
+                stack.getPlatform().getFriendlyName(),
+                stack.getName(),
+                stack.getFriendlyName(),
+                String.valueOf(stack.isLatest()),
+                stack.getBuildTypes().stream().map(BuildType::getFriendlyName).collect(Collectors.joining(", "))
+            );
+        }
+        System.out.println("\n\nStacks");
+        table.print();
+    }
+
+    private static void printChannel(AppflowClient client, String appId) {
+        final List<Channel> channels = client.getChannels(appId);
+        if (channels.isEmpty()) {
+            return;
+        }
+
+        final Channel channel = client.getChannel(appId, channels.get(0).getId());
+        TableGenerator table = new TableGenerator(
+            "Name",
+            "Created",
+            "Status",
+            "App ID",
+            "Build"
+        ).withUnicode(true);
+
+        final Snapshot snap = channel.getSnapshot();
+        table.addRow(
+            channel.getName(),
+            channel.getCreated(),
+            snap != null ? snap.getStatus() : "--",
+            snap != null ? snap.getAppId() : "--",
+            snap != null ? snap.getShortSha() : "--"
+        );
+        System.out.println("\n\nChannel " + channel.getId());
+        table.print();
+    }
+
+    private static void printBuild(AppflowClient client, String appId) {
+        final List<Build> builds = client.getBuilds(appId);
+        if (builds.isEmpty()) {
+            return;
+        }
+        final Build build = client.getBuild(appId, builds.get(0).getJobId());
+        TableGenerator table = new TableGenerator(
+            "Build",
+            "Platform",
+            "Build Stack",
+            "Deployment",
+            "Artifacts",
+            "Commit"
+        ).withUnicode(true);
+        table.addRow(
+            "#" + build.getNumber(),
+            build.getPlatform().getFriendlyName(),
+            build.getStack().getFriendlyName(),
+            build.getDeployments() != null && !build.getDeployments().isEmpty() ?
+                build.getDeployments().get(0).getChannel().getName() : "--",
+            build.getArtifactName(),
+            build.getCommit().getShortSha()
+        );
+        System.out.println("\n\nBuild " + build.getId());
+        table.print();
     }
 
     private static void printNativeConfigs(AppflowClient client, String appId) {
@@ -66,6 +246,7 @@ public class Application {
                 );
             }
         }
+        System.out.println("\n\nNative Configs");
         table.print();
     }
 
@@ -93,12 +274,12 @@ public class Application {
                 platforms.toString()
             );
         }
+        System.out.println("\n\nSigning Certificates");
         table.print();
     }
 
     private static void printEnvironments(final AppflowClient client, String appId) {
         final List<Environment> environments = client.getEnvironments(appId);
-        System.out.println("\n\nEnvironments");
         TableGenerator table = new TableGenerator(
             "Name",
             "Secrets",
@@ -111,12 +292,43 @@ public class Application {
                 environment.getConfig().stream().map(c -> c.getName() + "=" + c.getValue()).collect(Collectors.joining(", "))
             );
         }
+        System.out.println("\n\nEnvironments");
+        table.print();
+    }
+
+    private static void printAutomation(final AppflowClient client, final String appId) {
+        final List<Automation> automations = client.getAutomations(appId);
+        if (automations.isEmpty()) {
+            return;
+        }
+
+        Automation automation = client.getAutomation(appId, automations.get(0).getId());
+        TableGenerator table = new TableGenerator(
+            "Name",
+            "Platform",
+            "Ref",
+            "Webhook",
+            "Build Stack",
+            "Channel(s)",
+            "Environment"
+        ).withUnicode(true);
+        table.addRow(
+            automation.getName(),
+            automation.getPlatform().getFriendlyName(),
+            automation.getRef(),
+            automation.getNotifications() != null && !automation.getNotifications().isEmpty() ?
+                automation.getNotifications().get(0).getUrl() : "--",
+            automation.getStack() != null ? automation.getStack().getFriendlyName() : "--",
+            automation.getChannels() != null ?
+                automation.getChannels().stream().map(Channel::getName).collect(Collectors.joining(", ")) : "--",
+            automation.getEnvironment().getName()
+        );
+        System.out.println("\n\nAutomation");
         table.print();
     }
 
     private static void printAutomations(final AppflowClient client, String appId) {
         final List<Automation> automations = client.getAutomations(appId);
-        System.out.println("\n\nAutomations");
         TableGenerator table = new TableGenerator(
             "Name",
             "Branch",
@@ -130,7 +342,7 @@ public class Application {
             table.addRow(
                 automation.getName(),
                 automation.getRef(),
-                automation.getPlatform(),
+                automation.getPlatform().getFriendlyName(),
                 automation.getNotifications() != null && !automation.getNotifications().isEmpty() ?
                     automation.getNotifications().get(0).getUrl() : "--",
                 automation.getEnvironment().getName(),
@@ -139,12 +351,12 @@ public class Application {
                     automation.getChannels().stream().map(Channel::getName).collect(Collectors.joining(", ")) : "--"
             );
         }
+        System.out.println("\n\nAutomations");
         table.print();
     }
 
     private static void printChannels(final AppflowClient client, String appId) {
         final List<Channel> channels = client.getChannels(appId);
-        System.out.println("\n\nChannels");
         TableGenerator table = new TableGenerator(
             "Name",
             "Active Build"
@@ -155,12 +367,12 @@ public class Application {
                 channel.getSnapshot() != null ? "#" + channel.getSnapshot().getNumber() : "--"
             );
         }
+        System.out.println("\n\nChannels");
         table.print();
     }
 
     private static void printCommits(final AppflowClient client, String appId) {
         final List<Commit> commits = client.getCommits(appId);
-        System.out.println("\n\nCommits");
         TableGenerator table = new TableGenerator(
             "Commit Hash",
             "Committed By",
@@ -177,12 +389,12 @@ public class Application {
                 commit.getRefType()
             );
         }
+        System.out.println("\n\nCommits");
         table.print();
     }
 
     private static void printBuilds(final AppflowClient client, String appId) {
         final List<Build> builds = client.getBuilds(appId);
-        System.out.println("\n\nBuilds");
         TableGenerator table = new TableGenerator(
             "Build",
             "Status",
@@ -196,18 +408,49 @@ public class Application {
             table.addRow(
                 "#" + build.getNumber(),
                 build.getStatus(),
-                build.getPlatform(),
+                build.getPlatform().getFriendlyName(),
                 build.getAutomationName(),
                 build.getCommit().getShortSha(),
                 build.getDeployments().stream().map(d -> d.getChannel().getName()).collect(Collectors.joining(","))
             );
         }
+        System.out.println("\n\nBuilds");
+        table.print();
+    }
+
+    private static void printDeployment(final AppflowClient client, String appId) {
+        final List<Deployment> deployments = client.getDeployments(appId);
+        if (deployments.isEmpty()) {
+            return;
+        }
+
+        Deployment deployment = client.getDeployment(appId, deployments.get(0).getId());
+        TableGenerator table = new TableGenerator(
+            "Triggered By",
+            "User",
+            "Type",
+            "Status",
+            "Channel",
+            "Build",
+            "Commit",
+            "Deployed At"
+        ).sortBy(7, true).withUnicode(true);
+        table.addRow(
+            deployment.getTriggeredBy(),
+            deployment.getUser().getName(),
+            deployment.getType(),
+            deployment.getStatus(),
+            deployment.getChannel().getName(),
+            String.valueOf(deployment.getBuild().getJobId()),
+            deployment.getBuild().getCommit().getShortSha() + " @ " + deployment.getBuild().getCommit().getRef(),
+            deployment.getCompleted()
+        );
+        System.out.println("\n\nDeployment");
         table.print();
     }
 
     private static void printDeployments(final AppflowClient client, String appId) {
         final List<Deployment> deployments = client.getDeployments(appId);
-        System.out.println("\n\nDeployments");
         TableGenerator table = new TableGenerator(
             "Triggered By",
             "User",
@@ -230,6 +473,7 @@ public class Application {
                 deployment.getCompleted()
             );
         }
+        System.out.println("\n\nDeployments");
         table.print();
     }
 }

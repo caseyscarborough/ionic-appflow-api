@@ -1,0 +1,17 @@
+query BuildStacks {
+    stacks {
+        id
+        available
+        eolDate
+        friendlyName
+        latest
+        name
+        platform
+        precedence
+        softwareVersions {
+            name
+            version
+        }
+        type
+    }
+}
