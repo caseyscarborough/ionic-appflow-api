@@ -1,21 +1,21 @@
 package ionic.appflow;
 
-import ionic.appflow.response.shared.App;
-import ionic.appflow.response.shared.Automation;
-import ionic.appflow.response.shared.Build;
-import ionic.appflow.response.shared.BuildType;
-import ionic.appflow.response.shared.Certificate;
-import ionic.appflow.response.shared.Channel;
-import ionic.appflow.response.shared.Commit;
-import ionic.appflow.response.shared.Config;
-import ionic.appflow.response.shared.Deployment;
-import ionic.appflow.response.shared.Environment;
-import ionic.appflow.response.shared.Ionic;
-import ionic.appflow.response.shared.NativeConfig;
-import ionic.appflow.response.shared.Organization;
-import ionic.appflow.response.shared.Snapshot;
-import ionic.appflow.response.shared.Stack;
-import ionic.appflow.response.shared.User;
+import ionic.appflow.model.App;
+import ionic.appflow.model.Automation;
+import ionic.appflow.model.Build;
+import ionic.appflow.model.BuildType;
+import ionic.appflow.model.Certificate;
+import ionic.appflow.model.Channel;
+import ionic.appflow.model.Commit;
+import ionic.appflow.model.Config;
+import ionic.appflow.model.Deployment;
+import ionic.appflow.model.Environment;
+import ionic.appflow.model.Ionic;
+import ionic.appflow.model.NativeConfig;
+import ionic.appflow.model.Organization;
+import ionic.appflow.model.Snapshot;
+import ionic.appflow.model.Stack;
+import ionic.appflow.model.User;
 import ionic.appflow.util.TableGenerator;
 
 import java.util.ArrayList;
@@ -29,6 +29,10 @@ public class Application {
         final String token = System.getenv("IONIC_TOKEN");
         final String appId = System.getenv("IONIC_APP_ID");
         final String org = System.getenv("IONIC_ORG");
+        if (token == null || appId == null || org == null) {
+            throw new IllegalStateException("IONIC_TOKEN, IONIC_APP_ID, and IONIC_ORG environment variables required.");
+        }
+
         final AppflowClient client = new AppflowClient(token);
         printOrganization(client, org);
         printUsers(client, org);

@@ -6,36 +6,19 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ionic.appflow.exception.AppflowException;
 import ionic.appflow.exception.AppflowHttpException;
-import ionic.appflow.response.AppResponse;
-import ionic.appflow.response.AppsResponse;
-import ionic.appflow.response.AutomationResponse;
-import ionic.appflow.response.AutomationsResponse;
-import ionic.appflow.response.BuildResponse;
-import ionic.appflow.response.BuildsResponse;
-import ionic.appflow.response.CertificatesResponse;
-import ionic.appflow.response.ChannelResponse;
-import ionic.appflow.response.ChannelsResponse;
-import ionic.appflow.response.CommitsResponse;
-import ionic.appflow.response.DeploymentResponse;
-import ionic.appflow.response.DeploymentsResponse;
-import ionic.appflow.response.EnvironmentsResponse;
-import ionic.appflow.response.NativeConfigsResponse;
-import ionic.appflow.response.OrgResponse;
-import ionic.appflow.response.StacksResponse;
-import ionic.appflow.response.UserResponse;
-import ionic.appflow.response.UsersResponse;
-import ionic.appflow.response.shared.App;
-import ionic.appflow.response.shared.Automation;
-import ionic.appflow.response.shared.Build;
-import ionic.appflow.response.shared.Certificate;
-import ionic.appflow.response.shared.Channel;
-import ionic.appflow.response.shared.Commit;
-import ionic.appflow.response.shared.Deployment;
-import ionic.appflow.response.shared.Environment;
-import ionic.appflow.response.shared.NativeConfig;
-import ionic.appflow.response.shared.Organization;
-import ionic.appflow.response.shared.Stack;
-import ionic.appflow.response.shared.User;
+import ionic.appflow.model.App;
+import ionic.appflow.model.Automation;
+import ionic.appflow.model.Build;
+import ionic.appflow.model.Certificate;
+import ionic.appflow.model.Channel;
+import ionic.appflow.model.Commit;
+import ionic.appflow.model.Deployment;
+import ionic.appflow.model.Environment;
+import ionic.appflow.model.Meta;
+import ionic.appflow.model.NativeConfig;
+import ionic.appflow.model.Organization;
+import ionic.appflow.model.Stack;
+import ionic.appflow.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
@@ -71,7 +54,7 @@ public class AppflowClient {
     }
 
     public List<User> getUsers(final String organizationId) {
-        return this.get(String.format("/orgs/%s/users", organizationId), UsersResponse.class).getData();
+        return this.get(String.format("/orgs/%s/users", organizationId), UsersResponse.class);
     }
 
     public User getUser(final String organizationId, final int userId) {
@@ -79,35 +62,35 @@ public class AppflowClient {
     }
 
     public User getUser(final String organizationId, final String userId) {
-        return this.get(String.format("/orgs/%s/users/%s", organizationId, userId), UserResponse.class).getData();
+        return this.get(String.format("/orgs/%s/users/%s", organizationId, userId), UserResponse.class);
     }
 
     public Organization getOrganization(final String slug) {
-        return this.get(String.format("/orgs/%s?slug=true", slug), OrgResponse.class).getData();
+        return this.get(String.format("/orgs/%s?slug=true", slug), OrganizationResponse.class);
     }
 
     public List<App> getApps() {
-        return this.get("/apps?page=1&page_size=25&meta_fields=total", AppsResponse.class).getData();
+        return this.get("/apps?page=1&page_size=25&meta_fields=total", AppsResponse.class);
     }
 
     public App getApp(final String appId) {
-        return this.get(String.format("/apps/%s", appId), AppResponse.class).getData();
+        return this.get(String.format("/apps/%s", appId), AppResponse.class);
     }
 
     public List<Stack> getStacks() {
-        return this.get("/stacks", StacksResponse.class).getData();
+        return this.get("/stacks", StacksResponse.class);
     }
 
     public List<NativeConfig> getNativeConfigs(final String appId) {
-        return this.get(String.format("/apps/%s/native-configs", appId), NativeConfigsResponse.class).getData();
+        return this.get(String.format("/apps/%s/native-configs", appId), NativeConfigsResponse.class);
     }
 
     public List<Certificate> getSigningCertificates(final String appId) {
-        return this.get(String.format("/apps/%s/certificates", appId), CertificatesResponse.class).getData();
+        return this.get(String.format("/apps/%s/certificates", appId), CertificatesResponse.class);
     }
 
     public List<Environment> getEnvironments(final String appId) {
-        return this.get(String.format("/apps/%s/environments", appId), EnvironmentsResponse.class).getData();
+        return this.get(String.format("/apps/%s/environments", appId), EnvironmentsResponse.class);
     }
 
     public Automation getAutomation(final String appId, final int automationId) {
@@ -115,26 +98,25 @@ public class AppflowClient {
     }
 
     public Automation getAutomation(final String appId, final String automationId) {
-        return this.get(String.format("/apps/%s/automations/%s", appId, automationId),
-            AutomationResponse.class).getData();
+        return this.get(String.format("/apps/%s/automations/%s", appId, automationId), AutomationResponse.class);
     }
 
     public List<Automation> getAutomations(final String appId) {
-        return this.get(String.format("/apps/%s/automations", appId), AutomationsResponse.class).getData();
+        return this.get(String.format("/apps/%s/automations", appId), AutomationsResponse.class);
     }
 
     public Channel getChannel(final String appId, final String channelId) {
-        return this.get(String.format("/apps/%s/channels/%s", appId, channelId), ChannelResponse.class).getData();
+        return this.get(String.format("/apps/%s/channels/%s", appId, channelId), ChannelResponse.class);
     }
 
     public List<Channel> getChannels(final String appId) {
         return this.get(String.format("/apps/%s/channels?page=1&page_size=25&meta_fields=total", appId),
-            ChannelsResponse.class).getData();
+            ChannelsResponse.class);
     }
 
     public List<Commit> getCommits(final String appId) {
         return this.get(String.format("/apps/%s/commits?page=1&page_size=25&meta_fields=total", appId),
-            CommitsResponse.class).getData();
+            CommitsResponse.class);
     }
 
     public Build getBuild(final String appId, final int jobId) {
@@ -142,12 +124,12 @@ public class AppflowClient {
     }
 
     public Build getBuild(final String appId, final String jobId) {
-        return this.get(String.format("/apps/%s/builds/%s", appId, jobId), BuildResponse.class).getData();
+        return this.get(String.format("/apps/%s/builds/%s", appId, jobId), BuildResponse.class);
     }
 
     public List<Build> getBuilds(final String appId) {
         return this.get(String.format("/apps/%s/builds?page=1&page_size=25&meta_fields=total", appId),
-            BuildsResponse.class).getData();
+            BuildsResponse.class);
     }
 
     public Deployment getDeployment(final String appId, final int deploymentId) {
@@ -155,19 +137,19 @@ public class AppflowClient {
     }
 
     public Deployment getDeployment(final String appId, final String deploymentId) {
-        return this.get(String.format("/apps/%s/deployments/%s", appId, deploymentId), DeploymentResponse.class).getData();
+        return this.get(String.format("/apps/%s/deployments/%s", appId, deploymentId), DeploymentResponse.class);
     }
 
     public List<Deployment> getDeployments(final String appId) {
         return this.get(String.format("/apps/%s/deployments?page=1&page_size=25&meta_fields=total", appId),
-            DeploymentsResponse.class).getData();
+            DeploymentsResponse.class);
     }
 
-    private <T> T get(final String path, final Class<T> clazz) {
+    private <T extends AppflowResponse<D>, D> D get(final String path, final Class<T> clazz) {
         return this.request("GET", path, null, clazz);
     }
 
-    private <T, B> T post(final String path, final B body, final Class<T> clazz) {
+    private <T extends AppflowResponse<D>, D, B> D post(final String path, final B body, final Class<T> clazz) {
         try {
             return this.request("POST", path, this.mapper.writeValueAsString(body), clazz);
         } catch (JsonProcessingException e) {
@@ -175,29 +157,30 @@ public class AppflowClient {
         }
     }
 
-    private <T> T request(final String method, final String path, final String requestBody, final Class<T> clazz) {
+    private <T extends AppflowResponse<D>, D> D request(final String method,
+                                                        final String path,
+                                                        final String requestBody,
+                                                        final Class<T> clazz) {
         final String url = BASE_URL + path;
         final Request request = builder(method, requestBody)
             .url(url)
             .build();
 
-        log.debug("Making {} request to {}{}...", method, BASE_URL, path);
         try (Response response = this.client.newCall(request).execute()) {
             final int code = response.code();
             final String body = Objects.requireNonNull(response.body()).string();
-            if (response.isSuccessful()) {
-                log.trace("Response body: {}", body);
-                return this.mapper.readValue(body, clazz);
+            if (!response.isSuccessful()) {
+                throw new AppflowHttpException(code, url);
             }
 
-            throw new AppflowHttpException(code, url);
+            final T entity = this.mapper.readValue(body, clazz);
+            final D data = entity.getData();
+            final Meta meta = entity.getMeta();
+            log.trace("Response HTTP status: {}, version: {}, body: {}", response.code(), meta.getVersion(), body);
+            return data;
         } catch (IOException e) {
             throw new AppflowException("Could not make call to " + url, e);
         }
-    }
-
-    private Request.Builder builder(final String method) {
-        return this.builder(method, null);
     }
 
     private Request.Builder builder(final String method, final String body) {
