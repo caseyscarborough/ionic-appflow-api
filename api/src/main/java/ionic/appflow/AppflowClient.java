@@ -2,10 +2,9 @@ package ionic.appflow;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ionic.appflow.exception.AppflowException;
-import ionic.appflow.exception.AppflowHttpException;
 import ionic.appflow.model.App;
 import ionic.appflow.model.Automation;
 import ionic.appflow.model.Build;
@@ -54,7 +53,7 @@ public class AppflowClient {
     }
 
     public List<User> getUsers(final String organizationId) {
-        return this.get(String.format("/orgs/%s/users", organizationId), UsersResponse.class);
+        return this.get(String.format("/orgs/%s/users", organizationId), new TypeReference<>() {});
     }
 
     public User getUser(final String organizationId, final int userId) {
@@ -62,35 +61,35 @@ public class AppflowClient {
     }
 
     public User getUser(final String organizationId, final String userId) {
-        return this.get(String.format("/orgs/%s/users/%s", organizationId, userId), UserResponse.class);
+        return this.get(String.format("/orgs/%s/users/%s", organizationId, userId), new TypeReference<>() {});
     }
 
     public Organization getOrganization(final String slug) {
-        return this.get(String.format("/orgs/%s?slug=true", slug), OrganizationResponse.class);
+        return this.get(String.format("/orgs/%s?slug=true", slug), new TypeReference<>() {});
     }
 
     public List<App> getApps() {
-        return this.get("/apps?page=1&page_size=25&meta_fields=total", AppsResponse.class);
+        return this.get("/apps?page=1&page_size=25&meta_fields=total", new TypeReference<>() {});
     }
 
     public App getApp(final String appId) {
-        return this.get(String.format("/apps/%s", appId), AppResponse.class);
+        return this.get(String.format("/apps/%s", appId), new TypeReference<>() {});
     }
 
     public List<Stack> getStacks() {
-        return this.get("/stacks", StacksResponse.class);
+        return this.get("/stacks", new TypeReference<>() {});
     }
 
     public List<NativeConfig> getNativeConfigs(final String appId) {
-        return this.get(String.format("/apps/%s/native-configs", appId), NativeConfigsResponse.class);
+        return this.get(String.format("/apps/%s/native-configs", appId), new TypeReference<>() {});
     }
 
     public List<Certificate> getSigningCertificates(final String appId) {
-        return this.get(String.format("/apps/%s/certificates", appId), CertificatesResponse.class);
+        return this.get(String.format("/apps/%s/certificates", appId), new TypeReference<>() {});
     }
 
     public List<Environment> getEnvironments(final String appId) {
-        return this.get(String.format("/apps/%s/environments", appId), EnvironmentsResponse.class);
+        return this.get(String.format("/apps/%s/environments", appId), new TypeReference<>() {});
     }
 
     public Automation getAutomation(final String appId, final int automationId) {
@@ -98,25 +97,25 @@ public class AppflowClient {
     }
 
     public Automation getAutomation(final String appId, final String automationId) {
-        return this.get(String.format("/apps/%s/automations/%s", appId, automationId), AutomationResponse.class);
+        return this.get(String.format("/apps/%s/automations/%s", appId, automationId), new TypeReference<>() {});
     }
 
     public List<Automation> getAutomations(final String appId) {
-        return this.get(String.format("/apps/%s/automations", appId), AutomationsResponse.class);
+        return this.get(String.format("/apps/%s/automations", appId), new TypeReference<>() {});
     }
 
     public Channel getChannel(final String appId, final String channelId) {
-        return this.get(String.format("/apps/%s/channels/%s", appId, channelId), ChannelResponse.class);
+        return this.get(String.format("/apps/%s/channels/%s", appId, channelId), new TypeReference<>() {});
     }
 
     public List<Channel> getChannels(final String appId) {
         return this.get(String.format("/apps/%s/channels?page=1&page_size=25&meta_fields=total", appId),
-            ChannelsResponse.class);
+            new TypeReference<>() {});
     }
 
     public List<Commit> getCommits(final String appId) {
         return this.get(String.format("/apps/%s/commits?page=1&page_size=25&meta_fields=total", appId),
-            CommitsResponse.class);
+            new TypeReference<>() {});
     }
 
     public Build getBuild(final String appId, final int jobId) {
@@ -124,12 +123,12 @@ public class AppflowClient {
     }
 
     public Build getBuild(final String appId, final String jobId) {
-        return this.get(String.format("/apps/%s/builds/%s", appId, jobId), BuildResponse.class);
+        return this.get(String.format("/apps/%s/builds/%s", appId, jobId), new TypeReference<>() {});
     }
 
     public List<Build> getBuilds(final String appId) {
         return this.get(String.format("/apps/%s/builds?page=1&page_size=25&meta_fields=total", appId),
-            BuildsResponse.class);
+            new TypeReference<>() {});
     }
 
     public Deployment getDeployment(final String appId, final int deploymentId) {
@@ -137,21 +136,21 @@ public class AppflowClient {
     }
 
     public Deployment getDeployment(final String appId, final String deploymentId) {
-        return this.get(String.format("/apps/%s/deployments/%s", appId, deploymentId), DeploymentResponse.class);
+        return this.get(String.format("/apps/%s/deployments/%s", appId, deploymentId), new TypeReference<>() {});
     }
 
     public List<Deployment> getDeployments(final String appId) {
         return this.get(String.format("/apps/%s/deployments?page=1&page_size=25&meta_fields=total", appId),
-            DeploymentsResponse.class);
+            new TypeReference<>() {});
     }
 
-    private <T extends AppflowResponse<D>, D> D get(final String path, final Class<T> clazz) {
-        return this.request("GET", path, null, clazz);
+    private <T extends AppflowResponse<D>, D> D get(final String path, final TypeReference<T> ref) {
+        return this.request("GET", path, null, ref);
     }
 
-    private <T extends AppflowResponse<D>, D, B> D post(final String path, final B body, final Class<T> clazz) {
+    private <T extends AppflowResponse<D>, D, B> D post(final String path, final B body, final TypeReference<T> ref) {
         try {
-            return this.request("POST", path, this.mapper.writeValueAsString(body), clazz);
+            return this.request("POST", path, this.mapper.writeValueAsString(body), ref);
         } catch (JsonProcessingException e) {
             throw new AppflowException("Could not create request body", e);
         }
@@ -160,7 +159,7 @@ public class AppflowClient {
     private <T extends AppflowResponse<D>, D> D request(final String method,
                                                         final String path,
                                                         final String requestBody,
-                                                        final Class<T> clazz) {
+                                                        final TypeReference<T> ref) {
         final String url = BASE_URL + path;
         final Request request = builder(method, requestBody)
             .url(url)
@@ -170,10 +169,10 @@ public class AppflowClient {
             final int code = response.code();
             final String body = Objects.requireNonNull(response.body()).string();
             if (!response.isSuccessful()) {
-                throw new AppflowHttpException(code, url);
+                throw new AppflowException(String.format("An HTTP error %d occurred while calling URL %s", code, url));
             }
 
-            final T entity = this.mapper.readValue(body, clazz);
+            final T entity = this.mapper.readValue(body, ref);
             final D data = entity.getData();
             final Meta meta = entity.getMeta();
             log.trace("Response HTTP status: {}, version: {}, body: {}", response.code(), meta.getVersion(), body);

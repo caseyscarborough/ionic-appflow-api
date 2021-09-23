@@ -1,4 +1,4 @@
-package ionic.appflow.exception;
+package ionic.appflow;
 
 public class AppflowException extends RuntimeException {
 
